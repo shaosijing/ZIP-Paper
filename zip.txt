@@ -1,0 +1,35 @@
+model{
+  # likelihood
+  
+    for (i in 1:N) {
+    alpha[i] ~ dgamma(1,1)
+    logit(phi[i]) <- phi00*X[i,1] + phi01*X[i,2]  + res1[i]
+    res1[i] ~ dnorm(0,10)
+    #phi[i] <- phi00*X[i,1] + phi01*X[i,2]  + res1[i]
+    #res1[i] ~ dlnorm(0,1)
+    
+    lambda[i,1] ~ dgamma(alpha[i], 1)
+    
+    for (j in 2:Time) {
+     lambda[i,j] <- W[i,j]*(alpha[i] + phi[i] * lambda[i,j-1] + exp(beta01*X[i,j+2]))+0.00001
+    }
+    
+    for (j in 1:Time){
+      y[i,j] ~ dpois(lambda[i,j])
+    }
+  }
+  
+    for (i in 1:N) {
+      logit(p[i]) <- gamma1 * B[i, 1] 
+      
+      for (j in 1:Time){
+        W[i, j] ~ dbern(1-p[i])
+    }
+    }
+  
+  # prior
+    phi00 ~ dnorm(0, 0.001)
+    phi01 ~ dnorm(0, 0.001)
+    beta01 ~ dnorm(0, 0.001)
+    gamma1 ~ dnorm(1, 0.001)
+}
